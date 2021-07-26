@@ -38,7 +38,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "phuongna\\rabbitmq\\ServiceProvider"
+        "phuongna\\rabbitmq\\CustomQueueServiceProvider"
       ]
     }
   }

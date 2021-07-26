@@ -1,0 +1,12 @@
+{
+    "name": "rabbitmq/examples",
+    "authors": [
+        {
+            "name": "phuongna",
+            "email": "nap810@gmail.com"
+        }
+    ],
+    "require": {
+        "php-amqplib/php-amqplib": "^3.0"
+    }
+}
