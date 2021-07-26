@@ -5,9 +5,11 @@ namespace phuongna\rabbitmq;
 
 use Illuminate\Support\ServiceProvider;
 
-use phuongna\rabbitmq\Console\RestartCommand;
 use phuongna\rabbitmq\Console\WorkCommand;
+use phuongna\rabbitmq\Console\ListenCommand;
+use phuongna\rabbitmq\Console\RestartCommand;
 use phuongna\rabbitmq\Connectors\RabbitMQConnector;
+use phuongna\rabbitmq\Failed\NullFailedJobProvider;
 
 /**
  * Class CustomQueueServiceProvider
@@ -35,7 +37,12 @@ class CustomQueueServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerManager();
+
         $this->registerWorker();
+
+        $this->registerListener();
+
+        $this->registerFailedJobServices();
     }
 
     /**
@@ -90,16 +97,32 @@ class CustomQueueServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the connectors on the queue manager.
+     * Register the queue listener.
      *
      * @param  phuongna\rabbitmq\CustomQueueManager  $manager
      * @return void
      */
-    public function registerConnectors($manager)
+    protected function registerListener()
     {
-        foreach (['Rabbitmq'] as $connector) {
-            $this->{"register{$connector}Connector"}($manager);
-        }
+        $this->registerListenCommand();
+
+        $this->app->singleton('custom.queue.listener', function ($app) {
+            return new Listener($app->basePath());
+        });
+    }
+
+    /**
+     * Register the queue listener console command.
+     *
+     * @return void
+     */
+    protected function registerListenCommand()
+    {
+        $this->app->singleton('command.custom.queue.listen', function ($app) {
+            return new ListenCommand($app['custom.queue.listener']);
+        });
+
+        $this->commands('command.custom.queue.listen');
     }
     /**
      * Register the queue restart console command.
@@ -115,11 +138,23 @@ class CustomQueueServiceProvider extends ServiceProvider
         $this->commands('command.custom.queue.restart');
     }
 
+    /**
+     * Register the connectors on the queue manager.
+     *
+     * @param  phuongna\rabbitmq\QueueManager  $manager
+     * @return void
+     */
+    public function registerConnectors($manager)
+    {
+        foreach (['Rabbitmq'] as $connector) {
+            $this->{"register{$connector}Connector"}($manager);
+        }
+    }
 
     /**
      * Register the Null queue connector.
      *
-     * @param  phuongna\rabbitmq\CustomQueueManager  $manager
+     * @param $manager
      * @return void
      */
     protected function registerRabbitmqConnector($manager)
@@ -129,4 +164,18 @@ class CustomQueueServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Register the failed job services.
+     *
+     * @return void
+     */
+    protected function registerFailedJobServices()
+    {
+        $this->app->singleton('custom.queue.failer', function ($app) {
+            $config = $app['config']['custom-queue.failed'];
+
+            // TODO: Add Database Failed Job Provider
+            return new NullFailedJobProvider;
+        });
+    }
 }
