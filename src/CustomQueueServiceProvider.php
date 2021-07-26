@@ -5,6 +5,7 @@ namespace phuongna\rabbitmq;
 
 use Illuminate\Support\ServiceProvider;
 
+use phuongna\rabbitmq\Console\RestartCommand;
 use phuongna\rabbitmq\Console\WorkCommand;
 use phuongna\rabbitmq\Connectors\RabbitMQConnector;
 
@@ -100,6 +101,20 @@ class CustomQueueServiceProvider extends ServiceProvider
             $this->{"register{$connector}Connector"}($manager);
         }
     }
+    /**
+     * Register the queue restart console command.
+     *
+     * @return void
+     */
+    public function registerRestartCommand()
+    {
+        $this->app->singleton('command.custom.queue.restart', function () {
+            return new RestartCommand;
+        });
+
+        $this->commands('command.custom.queue.restart');
+    }
+
 
     /**
      * Register the Null queue connector.
