@@ -193,7 +193,15 @@ class RabbitMQQueue extends Queue implements QueueContract
         );
         $_this->channel->basic_publish($msg, '', $name);
         while (!RabbitMQQueue::$response) {
-            $_this->channel->wait();
+            try {
+                $_this->channel->wait(null, false , 1);
+            } catch(\PhpAmqpLib\Exception\AMQPTimeoutException $e){
+                $_this->channel->close();
+                $_this->connection->close();
+                return json_decode(json_encode([
+                    'success' => false
+                ]));
+            }
         }
         return json_decode(RabbitMQQueue::$response);
     }
