@@ -182,7 +182,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
      */
     protected function getConfig($name)
     {
-        return $this->app['config']["custom-queue.connections.{$name}"];
+        return $this->app['config']["rabbitmq.connections.{$name}"];
     }
 
     /**
@@ -192,7 +192,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
      */
     public function getDefaultDriver()
     {
-        return $this->app['config']['custom-queue.default'];
+        return $this->app['config']['rabbitmq.default'];
     }
 
     /**
@@ -203,7 +203,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
      */
     public function setDefaultDriver($name)
     {
-        $this->app['config']['custom-queue.default'] = $name;
+        $this->app['config']['rabbitmq.default'] = $name;
     }
 
     /**
