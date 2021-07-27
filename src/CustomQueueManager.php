@@ -3,6 +3,7 @@
 namespace phuongna\rabbitmq;
 
 use Closure;
+use Illuminate\Queue\Connectors\ConnectorInterface;
 use InvalidArgumentException;
 use Illuminate\Contracts\Queue\Factory as FactoryContract;
 use Illuminate\Contracts\Queue\Monitor as MonitorContract;
@@ -49,7 +50,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
      */
     public function after($callback)
     {
-        $this->app['events']->listen('custom.queue.after', $callback);
+        $this->app['events']->listen('rabbitmq.queue.after', $callback);
     }
 
     /**
@@ -60,7 +61,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
      */
     public function looping($callback)
     {
-        $this->app['events']->listen('custom.queue.looping', $callback);
+        $this->app['events']->listen('rabbitmq.queue.looping', $callback);
     }
 
     /**
@@ -71,7 +72,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
      */
     public function failing($callback)
     {
-        $this->app['events']->listen('custom.queue.failed', $callback);
+        $this->app['events']->listen('rabbitmq.queue.failed', $callback);
     }
 
     /**
@@ -82,7 +83,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
      */
     public function stopping($callback)
     {
-        $this->app['events']->listen('custom.queue.stopping', $callback);
+        $this->app['events']->listen('rabbitmq.queue.stopping', $callback);
     }
 
     /**
@@ -137,7 +138,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
      * Get the connector for a given driver.
      *
      * @param  string  $driver
-     * @return phuongna\rabbitmq\Connectors\ConnectorInterface
+     * @return ConnectorInterface
      *
      * @throws \InvalidArgumentException
      */
@@ -151,11 +152,8 @@ class CustomQueueManager implements FactoryContract, MonitorContract
     }
 
     /**
-     * Add a queue connection resolver.
-     *
-     * @param  string    $driver
-     * @param  \Closure  $resolver
-     * @return void
+     * @param $driver
+     * @param Closure $resolver
      */
     public function extend($driver, Closure $resolver)
     {

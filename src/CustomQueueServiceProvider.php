@@ -53,14 +53,14 @@ class CustomQueueServiceProvider extends ServiceProvider
      */
     protected function registerManager()
     {
-        $this->app->singleton('custom.queue', function ($app) {
+        $this->app->singleton('rabbitmq.queue', function ($app) {
             $manager = new CustomQueueManager($app);
             $this->registerConnectors($manager);
             return $manager;
         });
 
-        $this->app->singleton('custom.queue.connection', function ($app) {
-            return $app['custom.queue']->connection();
+        $this->app->singleton('rabbitmq.queue.connection', function ($app) {
+            return $app['rabbitmq.queue']->connection();
         });
     }
 
@@ -77,8 +77,8 @@ class CustomQueueServiceProvider extends ServiceProvider
 
         $this->registerRestartCommand();
 
-        $this->app->singleton('custom.queue.worker', function ($app) {
-            return new Worker($app['custom.queue'], $app['custom.queue.failer'], $app['events']);
+        $this->app->singleton('rabbitmq.queue.worker', function ($app) {
+            return new Worker($app['rabbitmq.queue'], $app['rabbitmq.queue.failer'], $app['events']);
         });
     }
 
@@ -89,24 +89,24 @@ class CustomQueueServiceProvider extends ServiceProvider
      */
     protected function registerWorkCommand()
     {
-        $this->app->singleton('command.custom.queue.work', function ($app) {
-            return new WorkCommand($app['custom.queue.worker']);
+        $this->app->singleton('command.rabbitmq.queue.work', function ($app) {
+            return new WorkCommand($app['rabbitmq.queue.worker']);
         });
 
-        $this->commands('command.custom.queue.work');
+        $this->commands('command.rabbitmq.queue.work');
     }
 
     /**
      * Register the queue listener.
      *
-     * @param  phuongna\rabbitmq\CustomQueueManager  $manager
+     * @param  CustomQueueManager  $manager
      * @return void
      */
     protected function registerListener()
     {
         $this->registerListenCommand();
 
-        $this->app->singleton('custom.queue.listener', function ($app) {
+        $this->app->singleton('rabbitmq.queue.listener', function ($app) {
             return new Listener($app->basePath());
         });
     }
@@ -118,11 +118,11 @@ class CustomQueueServiceProvider extends ServiceProvider
      */
     protected function registerListenCommand()
     {
-        $this->app->singleton('command.custom.queue.listen', function ($app) {
-            return new ListenCommand($app['custom.queue.listener']);
+        $this->app->singleton('command.rabbitmq.queue.listen', function ($app) {
+            return new ListenCommand($app['rabbitmq.queue.listener']);
         });
 
-        $this->commands('command.custom.queue.listen');
+        $this->commands('command.rabbitmq.queue.listen');
     }
     /**
      * Register the queue restart console command.
@@ -131,17 +131,17 @@ class CustomQueueServiceProvider extends ServiceProvider
      */
     public function registerRestartCommand()
     {
-        $this->app->singleton('command.custom.queue.restart', function () {
+        $this->app->singleton('command.rabbitmq.queue.restart', function () {
             return new RestartCommand;
         });
 
-        $this->commands('command.custom.queue.restart');
+        $this->commands('command.rabbitmq.queue.restart');
     }
 
     /**
      * Register the connectors on the queue manager.
      *
-     * @param  phuongna\rabbitmq\QueueManager  $manager
+     * @param  CustomQueueManager  $manager
      * @return void
      */
     public function registerConnectors($manager)
@@ -171,8 +171,8 @@ class CustomQueueServiceProvider extends ServiceProvider
      */
     protected function registerFailedJobServices()
     {
-        $this->app->singleton('custom.queue.failer', function ($app) {
-            $config = $app['config']['custom-queue.failed'];
+        $this->app->singleton('rabbitmq.queue.failer', function ($app) {
+            $config = $app['config']['rabbitmq.failed'];
 
             // TODO: Add Database Failed Job Provider
             return new NullFailedJobProvider;

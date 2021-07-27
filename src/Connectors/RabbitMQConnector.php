@@ -2,7 +2,7 @@
 
 namespace phuongna\rabbitmq\Connectors;
 
-use AMQPConnection;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
 use phuongna\rabbitmq\RabbitMQQueue;
 
 use Illuminate\Queue\Connectors\ConnectorInterface;
@@ -21,7 +21,7 @@ class RabbitMQConnector implements ConnectorInterface
     public function connect(array $config)
     {
         // create connection with AMQP
-        $this->connection = new AMQPConnection($config);
+        $this->connection = new AMQPStreamConnection($config['host'], $config['port'], $config['login'], $config['password'], $config['vhost']);
 
         return new RabbitMQQueue(
             $this->connection,

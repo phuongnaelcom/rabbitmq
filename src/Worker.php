@@ -16,14 +16,14 @@ class Worker
     /**
      * The queue manager instance.
      *
-     * @var phuongna\rabbitmq\CustomQueueManager
+     * @var CustomQueueManager
      */
     protected $manager;
 
     /**
      * The failed job provider implementation.
      *
-     * @var phuongna\rabbitmq\Failed\FailedJobProviderInterface
+     * @var FailedJobProviderInterface
      */
     protected $failer;
 
@@ -131,7 +131,7 @@ class Worker
             return false;
         }
 
-        return $this->events->until('custom.queue.looping') !== false;
+        return $this->events->until('rabbitmq.queue.looping') !== false;
     }
 
     /**
@@ -249,7 +249,7 @@ class Worker
         if ($this->events) {
             $data = json_decode($job->getRawBody(), true);
 
-            $this->events->fire('custom.queue.after', [$connection, $job, $data]);
+            $this->events->fire('rabbitmq.queue.after', [$connection, $job, $data]);
         }
     }
 
@@ -290,7 +290,7 @@ class Worker
         if ($this->events) {
             $data = json_decode($job->getRawBody(), true);
 
-            $this->events->fire('custom.queue.failed', [$connection, $job, $data]);
+            $this->events->fire('rabbitmq.queue.failed', [$connection, $job, $data]);
         }
     }
 
@@ -312,7 +312,7 @@ class Worker
      */
     public function stop()
     {
-        $this->events->fire('custom.queue.stopping');
+        $this->events->fire('rabbitmq.queue.stopping');
 
         die;
     }

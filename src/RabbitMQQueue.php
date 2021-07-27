@@ -7,6 +7,7 @@ use DateTime;
 use Illuminate\Queue\Queue;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 
+use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Wire\AMQPTable;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -26,10 +27,10 @@ class RabbitMQQueue extends Queue implements QueueContract
 
     /**
      * RabbitMQQueue constructor.
-     * @param \AMQPConnection $amqpConnection
+     * @param $amqpConnection
      * @param $config
      */
-    public function __construct(\AMQPConnection $amqpConnection, $config)
+    public function __construct(AMQPStreamConnection $amqpConnection, $config)
     {
         $this->connection = $amqpConnection;
         $this->defaultQueue = $config['queue'];
@@ -72,13 +73,11 @@ class RabbitMQQueue extends Queue implements QueueContract
             $queue = $this->declareDelayedQueue($queue, $options['delay']);
         }
 
-        // push job to a queue
         $message = new AMQPMessage($payload, [
             'Content-Type'  => 'application/json',
             'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
         ]);
 
-        // push task to a queue
         $this->channel->basic_publish($message, $queue, $queue);
 
         return true;
