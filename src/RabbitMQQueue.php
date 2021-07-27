@@ -10,7 +10,6 @@ use Illuminate\Contracts\Queue\Queue as QueueContract;
 use PhpAmqpLib\Wire\AMQPTable;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Channel\AMQPChannel;
-use PhpAmqpLib\Connection\AMQPConnection;
 use phuongna\rabbitmq\Jobs\RabbitMQJob;
 
 class RabbitMQQueue extends Queue implements QueueContract
@@ -26,10 +25,11 @@ class RabbitMQQueue extends Queue implements QueueContract
     protected $configExchange;
 
     /**
-     * @param AMQPConnection $amqpConnection
-     * @param array          $config
+     * RabbitMQQueue constructor.
+     * @param \AMQPConnection $amqpConnection
+     * @param $config
      */
-    public function __construct(AMQPConnection $amqpConnection, $config)
+    public function __construct(\AMQPConnection $amqpConnection, $config)
     {
         $this->connection = $amqpConnection;
         $this->defaultQueue = $config['queue'];
@@ -214,5 +214,10 @@ class RabbitMQQueue extends Queue implements QueueContract
         $this->channel->queue_bind($name, $name, $name);
 
         return $name;
+    }
+
+    public function size($queue = null)
+    {
+        // TODO: Implement size() method.
     }
 }
