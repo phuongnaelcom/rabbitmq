@@ -18,13 +18,14 @@ class RabbitMQQueue extends Queue implements QueueContract
     protected $connection;
     public $channel;
     protected $callback;
-
     protected $defaultQueue;
     protected $configQueue;
+    private static $corr_id;
+    private static $response;
 
     /**
      * RabbitMQQueue constructor.
-     * @param $amqpConnection
+     * @param AMQPStreamConnection $amqpConnection
      * @param $config
      */
     public function __construct(AMQPStreamConnection $amqpConnection, $config)
@@ -152,6 +153,59 @@ class RabbitMQQueue extends Queue implements QueueContract
             $request->get('reply_to')
         );
         $request->ack();
+    }
+
+    /**
+     * @param $_this
+     * @param $name
+     * @param $stringInput
+     * @return mixed
+     */
+    public static function declareRPCClient($_this, $name, $stringInput)
+    {
+        RabbitMQQueue::$corr_id = uniqid();
+        $name = RabbitMQQueue::getQueueName($name);
+        list($_this->callback_queue, ,) = $_this->channel->queue_declare(
+            "",
+            false,
+            false,
+            true,
+            false
+        );
+        $_this->channel->basic_consume(
+            $_this->callback_queue,
+            '',
+            false,
+            true,
+            false,
+            false,
+            array(
+                $_this,
+                'onResponse'
+            )
+        );
+        $msg = new AMQPMessage(
+            (string) $stringInput,
+            array(
+                'correlation_id' => RabbitMQQueue::$corr_id,
+                'reply_to' => $_this->callback_queue
+            )
+        );
+        $_this->channel->basic_publish($msg, '', $name);
+        while (!RabbitMQQueue::$response) {
+            $_this->channel->wait();
+        }
+        return json_decode(RabbitMQQueue::$response);
+    }
+
+    /**
+     * @param $response
+     */
+    public function onResponse($response)
+    {
+        if ($response->get('correlation_id') == RabbitMQQueue::$corr_id) {
+            RabbitMQQueue::$response = $response->body;
+        }
     }
 
     public function size($queue = null)

@@ -55,13 +55,13 @@ class FibonacciRpcClient
         $this->corr_id = uniqid();
 
         $msg = new AMQPMessage(
-            (string) json_encode([1=> 123123123123]),
+            (string) 'info',
             array(
                 'correlation_id' => $this->corr_id,
                 'reply_to' => $this->callback_queue
             )
         );
-        $this->channel->basic_publish($msg, '', 'rpc_queue');
+        $this->channel->basic_publish($msg, '', 'account_rpc_queue');
         while (!$this->response) {
             $this->channel->wait();
         }
@@ -71,4 +71,4 @@ class FibonacciRpcClient
 
 $fibonacci_rpc = new FibonacciRpcClient();
 $response = $fibonacci_rpc->call(30);
-echo ' [.] Got ', $response, "\n";
+echo  $response, "\n";
