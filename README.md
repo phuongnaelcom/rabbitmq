@@ -22,8 +22,13 @@ instead of using the issue tracker.
 ####Server as service
 ```
 $this->rabbit = app('rabbitmq.queue')->connection('rabbitmq');
-$this->rabbit->declareRPCServer($this->rabbit, 'rpc_queue', function ($request) {
-  $this->rabbit->replyTo($request, $this->test($request));
+RabbitMQQueue::declareRPCServer($this->rabbit, xxx, function ($request) {
+    $this->rabbit->replyTo($request, dosomething($request));
 });
 ```
 ####Client as service
+```
+$this->rabbit = app('rabbitmq.queue')->connection('rabbitmq');
+$stringInput = json_encode(array);
+RabbitMQQueue::declareRPCClient($this->rabbit, xxx, $stringInput);
+```
