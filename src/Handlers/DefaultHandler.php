@@ -4,7 +4,7 @@ namespace phuongna\rabbitmq\Handlers;
 
 use phuongna\rabbitmq\Contracts\HandlerInterface;
 
-class DefaultHsndler implements HandlerInterface
+class DefaultHandler implements HandlerInterface
 {
     /**
      * The defauld Handler that just logs and returns.
