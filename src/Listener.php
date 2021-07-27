@@ -4,7 +4,7 @@ namespace phuongna\rabbitmq;
 
 use Closure;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\ProcessUtils;
+use Illuminate\Support\ProcessUtils;
 use Symfony\Component\Process\PhpExecutableFinder;
 
 class Listener
