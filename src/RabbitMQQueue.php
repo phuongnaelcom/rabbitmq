@@ -60,16 +60,6 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     public function pushRaw($payload, $queue = null, array $options = [])
     {
-        $queue = $this->getQueueName($queue);
-        $this->declareQueue($queue);
-
-        $message = new AMQPMessage($payload, [
-            'Content-Type'  => 'application/json',
-            'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
-        ]);
-
-        $this->channel->basic_publish($message, $queue, $queue);
-
         return true;
     }
 
@@ -97,18 +87,6 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     public function pop($queue = null)
     {
-        $queue = $this->getQueueName($queue);
-
-        // declare queue if not exists
-        $this->declareQueue($queue);
-
-        // get envelope
-        $message = $this->channel->basic_get($queue);
-
-        if ($message instanceof AMQPMessage) {
-            return new RabbitMQJob($this->container, $this, $this->channel, $queue, $message);
-        }
-
         return null;
     }
 
