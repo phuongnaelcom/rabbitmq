@@ -112,7 +112,9 @@ class CustomQueueManager implements FactoryContract, MonitorContract
         // not make any unnecessary connection to the various queue end-points.
         if (! isset($this->connections[$name])) {
             $this->connections[$name] = $this->resolve($name);
-            $this->connections[$name]->setContainer($this->app);
+            if($this->connections[$name] != null) {
+                $this->connections[$name]->setContainer($this->app);
+            }
         }
 
         return $this->connections[$name];
