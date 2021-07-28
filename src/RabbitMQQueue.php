@@ -152,7 +152,7 @@ class RabbitMQQueue extends Queue implements QueueContract
             '',
             $request->get('reply_to')
         );
-        $request->ack();
+        //$request->ack();
     }
 
     /**
