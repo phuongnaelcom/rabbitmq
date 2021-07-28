@@ -127,8 +127,7 @@ class CustomQueueManager implements FactoryContract, MonitorContract
     protected function resolve($name)
     {
         $config = $this->getConfig($name);
-
-        return $this->getConnector($config['driver'])->connect($config);
+        return sizeof($config) > 0?$this->getConnector($config['driver'])->connect($config):null;
     }
 
     /**
