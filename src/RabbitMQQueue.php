@@ -117,20 +117,9 @@ class RabbitMQQueue extends Queue implements QueueContract
     public static function declareRPCServer($_this, $name, $callback)
     {
         $name = RabbitMQQueue::getQueueName($name);
-        $_this->channel->queue_declare(
-            $name,
-            $_this->configQueue['passive'],
-            $_this->configQueue['durable'],
-            $_this->configQueue['exclusive'],
-            $_this->configQueue['auto_delete']
-        );
+        $_this->channel->queue_declare($name, false, false, false, false);
         $_this->channel->basic_qos(null, 1, null);
-        $_this->channel->basic_consume($name, '',
-            $_this->configQueue['passive'],
-            $_this->configQueue['durable'],
-            $_this->configQueue['exclusive'],
-            $_this->configQueue['auto_delete'],
-            $callback);
+        $_this->channel->basic_consume($name, '', false, false, false, false, $callback);
         while ($_this->channel->is_open()) {
             $_this->channel->wait();
         }
