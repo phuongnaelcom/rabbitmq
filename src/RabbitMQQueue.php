@@ -19,7 +19,6 @@ class RabbitMQQueue extends Queue implements QueueContract
     public $channel;
     protected $callback;
     protected $defaultQueue;
-    protected $configQueue;
     private static $corr_id;
     private static $response;
 
@@ -32,7 +31,6 @@ class RabbitMQQueue extends Queue implements QueueContract
     {
         $this->connection = $amqpConnection;
         $this->defaultQueue = $config['queue'];
-        $this->configQueue = $config['queue_params'];
         $this->channel = $this->getChannel();
     }
 
@@ -184,20 +182,8 @@ class RabbitMQQueue extends Queue implements QueueContract
     {
         RabbitMQQueue::$corr_id = uniqid();
         $name = RabbitMQQueue::getQueueName($name);
-        list($_this->callback_queue, ,) = $_this->channel->queue_declare(
-            "",
-            false,
-            false,
-            true,
-            false
-        );
-        $_this->channel->basic_consume(
-            $_this->callback_queue,
-            '',
-            false,
-            true,
-            false,
-            false,
+        list($_this->callback_queue, ,) = $_this->channel->queue_declare("", false, false, false, false );
+        $_this->channel->basic_consume( $_this->callback_queue, '', false, false, false, false,
             array(
                 $_this,
                 'onResponse'
