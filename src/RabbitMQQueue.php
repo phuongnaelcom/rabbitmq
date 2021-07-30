@@ -144,10 +144,9 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     public static function declareSubscribeServer($_this, $name, $callback)
     {
-        $name = RabbitMQQueue::getQueueName($name);
-        $_this->channel->queue_declare($name, 'fanout', false, false, false);
-        $_this->channel->queue_bind($name);
-        $_this->channel->basic_consume($name, '', false, true, false, false, $callback);
+        list($queue_name, ,) = $_this->channel->queue_declare($name, 'fanout', false, false, false);
+        $_this->channel->queue_bind($queue_name, $name);
+        $_this->channel->basic_consume($queue_name, '', false, true, false, false, $callback);
         while ($_this->channel->is_open()) {
             $_this->channel->wait();
         }
@@ -162,7 +161,6 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     public static function declarePublish($_this, $name, $stringInput)
     {
-        $name = RabbitMQQueue::getQueueName($name);
         $_this->channel->exchange_declare($name, 'fanout', false, false, false);
         $msg = new AMQPMessage($stringInput);
         $_this->channel->basic_publish($msg, $name);
