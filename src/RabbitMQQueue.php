@@ -39,9 +39,9 @@ class RabbitMQQueue extends Queue implements QueueContract
     /**
      * Push a new job onto the queue.
      *
-     * @param  string $job
-     * @param  mixed  $data
-     * @param  string $queue
+     * @param string $job
+     * @param mixed $data
+     * @param string $queue
      *
      * @return bool
      */
@@ -53,9 +53,9 @@ class RabbitMQQueue extends Queue implements QueueContract
     /**
      * Push a raw payload onto the queue.
      *
-     * @param  string $payload
-     * @param  string $queue
-     * @param  array  $options
+     * @param string $payload
+     * @param string $queue
+     * @param array $options
      *
      * @return mixed
      */
@@ -67,10 +67,10 @@ class RabbitMQQueue extends Queue implements QueueContract
     /**
      * Push a new job onto the queue after a delay.
      *
-     * @param  \DateTime|int $delay
-     * @param  string        $job
-     * @param  mixed         $data
-     * @param  string        $queue
+     * @param \DateTime|int $delay
+     * @param string $job
+     * @param mixed $data
+     * @param string $queue
      *
      * @return mixed
      */
@@ -98,7 +98,7 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     public static function getQueueName($queue)
     {
-        return $queue??null;
+        return $queue ?? null;
     }
 
     /**
@@ -138,6 +138,38 @@ class RabbitMQQueue extends Queue implements QueueContract
     }
 
     /**
+     * @param $_this
+     * @param $name
+     * @param $callback
+     */
+    public static function declareSubscribeServer($_this, $name, $callback)
+    {
+        $name = RabbitMQQueue::getQueueName($name);
+        $_this->channel->queue_declare($name, 'fanout', false, false, false);
+        $_this->channel->queue_bind($name);
+        $_this->channel->basic_consume($name, '', false, true, false, false, $callback);
+        while ($_this->channel->is_open()) {
+            $_this->channel->wait();
+        }
+        self::close($_this);
+    }
+
+    /**
+     * @param $_this
+     * @param $name
+     * @param $stringInput
+     * @return void
+     */
+    public static function declarePublish($_this, $name, $stringInput)
+    {
+        $name = RabbitMQQueue::getQueueName($name);
+        $_this->channel->exchange_declare($name, 'fanout', false, false, false);
+        $msg = new AMQPMessage($stringInput);
+        $_this->channel->basic_publish($msg, $name);
+        return;
+    }
+
+    /**
      * @param $request
      * @param string $string
      */
@@ -152,7 +184,6 @@ class RabbitMQQueue extends Queue implements QueueContract
             '',
             $request->get('reply_to')
         );
-        //$request->ack();
     }
 
     /**
@@ -185,7 +216,7 @@ class RabbitMQQueue extends Queue implements QueueContract
             )
         );
         $msg = new AMQPMessage(
-            (string) $stringInput,
+            (string)$stringInput,
             array(
                 'correlation_id' => RabbitMQQueue::$corr_id,
                 'reply_to' => $_this->callback_queue
@@ -194,8 +225,8 @@ class RabbitMQQueue extends Queue implements QueueContract
         $_this->channel->basic_publish($msg, '', $name);
         while (!RabbitMQQueue::$response) {
             try {
-                $_this->channel->wait(null, false , 1);
-            } catch(\PhpAmqpLib\Exception\AMQPTimeoutException $e){
+                $_this->channel->wait(null, false, 1);
+            } catch (\PhpAmqpLib\Exception\AMQPTimeoutException $e) {
                 $_this->channel->close();
                 $_this->connection->close();
                 return json_decode(json_encode([
