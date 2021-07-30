@@ -15,7 +15,7 @@ class FibonacciRpcClient
     public function __construct()
     {
         $this->connection = new AMQPStreamConnection(
-            'localhost',
+            '103.21.151.163',
             5672,
             'admin',
             'admin'
@@ -61,7 +61,7 @@ class FibonacciRpcClient
                 'reply_to' => $this->callback_queue
             )
         );
-        $this->channel->basic_publish($msg, '', 'account_rpc_queue');
+        $this->channel->basic_publish($msg, '', 'rpc_queue');
         while (!$this->response) {
             $this->channel->wait();
         }
