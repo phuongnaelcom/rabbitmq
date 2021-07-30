@@ -144,7 +144,8 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     public static function declareSubscribeServer($_this, $name, $callback)
     {
-        list($queue_name, ,) = $_this->channel->queue_declare($name, 'fanout', false, false, false);
+        $_this->channel->exchange_declare($name, 'fanout', false, false, false);
+        list($queue_name, ,) = $_this->channel->queue_declare("", false, false, true, false);
         $_this->channel->queue_bind($queue_name, $name);
         $_this->channel->basic_consume($queue_name, '', false, true, false, false, $callback);
         while ($_this->channel->is_open()) {
