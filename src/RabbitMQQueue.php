@@ -209,11 +209,10 @@ class RabbitMQQueue extends Queue implements QueueContract
                     ]));
                 }
             }
+            return json_decode(RabbitMQQueue::$response);
         } catch (\Exception $e){
             // TODO: nothing
         }
-        self::close($_this);
-        return json_decode(RabbitMQQueue::$response);
     }
     /**
      * @param $response
