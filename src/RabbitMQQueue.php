@@ -152,7 +152,7 @@ class RabbitMQQueue extends Queue implements QueueContract
         $_this->channel->exchange_declare($name, 'fanout', false, false, false);
         $msg = new AMQPMessage($stringInput);
         $_this->channel->basic_publish($msg, $name);
-        return;
+        self::close($_this);
     }
 
     /**
@@ -170,6 +170,7 @@ class RabbitMQQueue extends Queue implements QueueContract
             '',
             $request->get('reply_to')
         );
+        $request->ack();
     }
 
     /**
@@ -182,7 +183,7 @@ class RabbitMQQueue extends Queue implements QueueContract
     {
         RabbitMQQueue::$corr_id = uniqid();
         $name = RabbitMQQueue::getQueueName($name);
-        list($_this->callback_queue, ,) = $_this->channel->queue_declare("", false, false, false, false );
+        list($_this->callback_queue, ,) = $_this->channel->queue_declare("", false, false, true, false );
         $_this->channel->basic_consume( $_this->callback_queue, '', false, false, false, false,
             array(
                 $_this,
@@ -201,16 +202,15 @@ class RabbitMQQueue extends Queue implements QueueContract
             try {
                 $_this->channel->wait(null, false, 1);
             } catch (\PhpAmqpLib\Exception\AMQPTimeoutException $e) {
-                $_this->channel->close();
-                $_this->connection->close();
+                self::close($_this);
                 return json_decode(json_encode([
                     'success' => false
                 ]));
             }
         }
+        self::close($_this);
         return json_decode(RabbitMQQueue::$response);
     }
-
     /**
      * @param $response
      */
