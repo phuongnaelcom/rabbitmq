@@ -183,30 +183,34 @@ class RabbitMQQueue extends Queue implements QueueContract
     {
         RabbitMQQueue::$corr_id = uniqid();
         $name = RabbitMQQueue::getQueueName($name);
-        list($_this->callback_queue, ,) = $_this->channel->queue_declare("", false, false, true, false );
-        $_this->channel->basic_consume( $_this->callback_queue, '', false, false, false, false,
-            array(
-                $_this,
-                'onResponse'
-            )
-        );
-        $msg = new AMQPMessage(
-            (string)$stringInput,
-            array(
-                'correlation_id' => RabbitMQQueue::$corr_id,
-                'reply_to' => $_this->callback_queue
-            )
-        );
-        $_this->channel->basic_publish($msg, '', $name);
-        while (!RabbitMQQueue::$response) {
-            try {
-                $_this->channel->wait(null, false, 1);
-            } catch (\PhpAmqpLib\Exception\AMQPTimeoutException $e) {
-                self::close($_this);
-                return json_decode(json_encode([
-                    'success' => false
-                ]));
+        try {
+            list($_this->callback_queue, ,) = $_this->channel->queue_declare("", false, false, true, false );
+            $_this->channel->basic_consume( $_this->callback_queue, '', false, false, false, false,
+                array(
+                    $_this,
+                    'onResponse'
+                )
+            );
+            $msg = new AMQPMessage(
+                (string)$stringInput,
+                array(
+                    'correlation_id' => RabbitMQQueue::$corr_id,
+                    'reply_to' => $_this->callback_queue
+                )
+            );
+            $_this->channel->basic_publish($msg, '', $name);
+            while (!RabbitMQQueue::$response) {
+                try {
+                    $_this->channel->wait(null, false, 1);
+                } catch (\PhpAmqpLib\Exception\AMQPTimeoutException $e) {
+                    self::close($_this);
+                    return json_decode(json_encode([
+                        'success' => false
+                    ]));
+                }
             }
+        } catch (\Exception $e){
+            // TODO: nothing
         }
         self::close($_this);
         return json_decode(RabbitMQQueue::$response);
