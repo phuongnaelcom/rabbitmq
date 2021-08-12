@@ -149,10 +149,14 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     public static function declarePublish($_this, $name, $stringInput)
     {
-        $_this->channel->exchange_declare($name, 'fanout', false, false, false);
-        $msg = new AMQPMessage($stringInput);
-        $_this->channel->basic_publish($msg, $name);
-        self::close($_this);
+        try {
+            $_this->channel->exchange_declare($name, 'fanout', false, false, false);
+            $msg = new AMQPMessage($stringInput);
+            $_this->channel->basic_publish($msg, $name);
+            self::close($_this);
+        } catch (\Exception $e){
+            // TODO: nothing
+        }
     }
 
     /**
@@ -229,9 +233,11 @@ class RabbitMQQueue extends Queue implements QueueContract
         // TODO: Implement size() method.
     }
 
-    public static function close($_this)
+    public static function close($_this=null)
     {
-        $_this->channel->close();
-        $_this->close();
+        if($_this != null) {
+            $_this->channel->close();
+            $_this->close();
+        }
     }
 }
