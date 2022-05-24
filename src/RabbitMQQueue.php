@@ -186,6 +186,7 @@ class RabbitMQQueue extends Queue implements QueueContract
     public static function declareRPCClient($_this, $name, $stringInput)
     {
         RabbitMQQueue::$corr_id = uniqid();
+        RabbitMQQueue::$response = null;
         $name = RabbitMQQueue::getQueueName($name);
         try {
             list($_this->callback_queue, ,) = $_this->channel->queue_declare("", false, false, true, false );
